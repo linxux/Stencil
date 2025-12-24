@@ -1,0 +1,283 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Generate coverage report
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.out
+            coverage.html
+          retention-days: 30
+
+      - name: Display coverage
+        run: |
+          echo "Coverage report:"
+          go tool cover -func=coverage.out | grep total
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            asset_name: stencil-linux-amd64
+          - goos: linux
+            goarch: arm64
+            asset_name: stencil-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            asset_name: stencil-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            asset_name: stencil-darwin-arm64
+          - goos: windows
+            goarch: amd64
+            asset_name: stencil-windows-amd64.exe
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building version: ${VERSION}"
+
+      - name: Build binary
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          COMMIT=${{ github.sha }}
+
+          mkdir -p dist
+
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            EXTENSION=".exe"
+          else
+            EXTENSION=""
+          fi
+
+          go build \
+            -ldflags="-s -w -X 'main.version=${VERSION}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.gitCommit=${COMMIT}'" \
+            -trimpath \
+            -o dist/${{ matrix.asset_name }}${EXTENSION} \
+            ./cmd/stencil/main.go
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}*
+          retention-days: 7
+
+  package:
+    name: Package Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/binaries
+
+      - name: Create release packages
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mkdir -p dist/release
+
+          # Package Linux binaries (with and without version for install script)
+          cd dist/binaries/stencil-linux-amd64
+          tar -czf ../../release/stencil-${VERSION}-linux-amd64.tar.gz stencil-linux-amd64
+          tar -czf ../../release/stencil_linux_amd64.tar.gz stencil-linux-amd64
+          cd ../../..
+
+          cd dist/binaries/stencil-linux-arm64
+          tar -czf ../../release/stencil-${VERSION}-linux-arm64.tar.gz stencil-linux-arm64
+          tar -czf ../../release/stencil_linux_arm64.tar.gz stencil-linux-arm64
+          cd ../../..
+
+          # Package macOS binaries (with and without version for install script)
+          cd dist/binaries/stencil-darwin-amd64
+          tar -czf ../../release/stencil-${VERSION}-darwin-amd64.tar.gz stencil-darwin-amd64
+          tar -czf ../../release/stencil_darwin_amd64.tar.gz stencil-darwin-amd64
+          cd ../../..
+
+          cd dist/binaries/stencil-darwin-arm64
+          tar -czf ../../release/stencil-${VERSION}-darwin-arm64.tar.gz stencil-darwin-arm64
+          tar -czf ../../release/stencil_darwin_arm64.tar.gz stencil-darwin-arm64
+          cd ../../..
+
+          # Package Windows binary (with and without version for install script)
+          cd dist/binaries/stencil-windows-amd64.exe
+          zip -q -r ../../release/stencil-${VERSION}-windows-amd64.zip stencil-windows-amd64.exe
+          zip -q -r ../../release/stencil_windows_amd64.zip stencil-windows-amd64.exe
+          cd ../../..
+
+          # Generate checksums
+          cd dist/release
+          sha256sum * > SHA256SUMS.txt
+          cd ../..
+
+          # List packages
+          echo "Created packages:"
+          ls -lh dist/release
+
+          cat dist/release/SHA256SUMS.txt
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-packages
+          path: dist/release/*
+          retention-days: 30
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download release packages
+        uses: actions/download-artifact@v4
+        with:
+          name: release-packages
+          path: dist/release
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          VERSION=${{ steps.version.outputs.version }}
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "## What's Changed" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" >> CHANGELOG.md
+          else
+            echo "## What's Changed" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" -10 >> CHANGELOG.md
+          fi
+
+          echo "Changelog:"
+          cat CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          files: |
+            dist/release/*.tar.gz
+            dist/release/*.zip
+            dist/release/SHA256SUMS.txt
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  goreleaser:
+    name: GoReleaser (Optional)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

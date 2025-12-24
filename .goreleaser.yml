@@ -1,0 +1,170 @@
+# .goreleaser.yml - GoReleaser configuration
+# https://goreleaser.com/
+
+project_name: stencil
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - '6'
+      - '7'
+    ignore:
+      - goos: darwin
+        goarch: arm64
+        gomips: softfloat
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.buildTime={{.Date}}
+      - -X main.gitCommit={{.Commit}}
+    flags:
+      - -trimpath
+    main: ./cmd/stencil/main.go
+    binary: stencil
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - examples/*
+    wrap_in_directory: false
+
+checksum:
+  name_template: 'SHA256SUMS.txt'
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      "--detach-sign"
+      -- "${artifact}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - '^build:'
+
+release:
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Stencil {{ .Tag }} ({{ .Date }})
+  footer: |
+    **Full Changelog**: https://github.com/{{ .Env.GITHUB_REPOSITORY }}/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+    ## What's Changed
+
+    See [CHANGELOG.md](https://github.com/{{ .Env.GITHUB_REPOSITORY }}/blob/master/CHANGELOG.md) for detailed changes.
+
+nfpms:
+  - file_name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    homepage: https://github.com/linxux/stencil
+    description: "A fast and flexible project scaffolding generator written in Go"
+    maintainer: "Your Name <your.email@example.com>"
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - dst: /usr/share/doc/stencil
+        type: dir
+      - dst: /usr/share/doc/stencil/README.md
+        type: file
+        src: README.md
+        file_info:
+          mode: 0644
+      - dst: /usr/share/doc/stencil/LICENSE
+        type: file
+        src: LICENSE
+        file_info:
+          mode: 0644
+
+brews:
+  - name: stencil
+    tap:
+      owner: linxux
+      name: homebrew-tap
+    commit_author:
+      name: goreleaser-bot
+      email: bot@goreleaser.com
+    homepage: https://github.com/linxux/stencil
+    description: "A fast and flexible project scaffolding generator"
+    license: MIT
+    test: |
+      system "#{bin}/stencil --version"
+
+scoops:
+  - name: stencil
+    homepage: https://github.com/linxux/stencil
+    description: "A fast and flexible project scaffolding generator"
+    license: MIT
+    url_template: "https://github.com/{{ .Env.GITHUB_REPOSITORY }}/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    bucket:
+      owner: linxux
+      name: scoop-bucket
+
+universal_binaries:
+  - replace: false
+    name_template: "{{ .ProjectName }}"
+
+milestones:
+  - close: true
+  - fail_on_error: false
+
+announce:
+  twitter:
+    enabled: false
+    message_template: "Stencil {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}"
+
+  discord:
+    enabled: false
+    message_template: "Stencil {{ .Tag }} is out! Check it out at {{ .ReleaseURL }}"
+
+snapcrafts:
+  - name: stencil
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    publish: true
+    summary: "A fast and flexible project scaffolding generator"
+    description: |
+      Stencil is a project scaffolding generator written in Go that creates
+      projects from templates with variable substitution. It is language-agnostic
+      and works with any programming language or project type.
+    grade: stable
+    confinement: classic
+    base: core22
+    apps:
+      stencil:
+        command: bin/stencil
+        completer: completion/stencil.bash

@@ -11,8 +11,11 @@ import (
 	"github.com/linxux/stencil/internal/interactive"
 )
 
-const (
-	version = "1.0.0"
+var (
+	// Version information (injected via ldflags during build)
+	version   = "1.0.0"
+	buildTime = "unknown"
+	gitCommit = "unknown"
 )
 
 var (
@@ -61,6 +64,8 @@ func main() {
 
 	if showVersion {
 		fmt.Printf("Stencil v%s\n", version)
+		fmt.Printf("Build: %s\n", buildTime)
+		fmt.Printf("Commit: %s\n", gitCommit)
 		fmt.Println("A project scaffolding generator")
 		os.Exit(0)
 	}

@@ -15,11 +15,68 @@ A fast and flexible project scaffolding generator written in Go. Stencil allows 
 
 ## Installation
 
+### Quick Install (Linux & macOS)
+
+The easiest way to install Stencil is using the installation script:
+
 ```bash
-# Build from source
+# Install the latest version
+curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh
+
+# Install a specific version
+curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh -s v1.0.0
+
+# Install to a custom directory (e.g., user home)
+curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | STENCIL_INSTALL=~/.local sh
+```
+
+The installer will:
+- Detect your operating system and architecture
+- Download the latest Stencil binary from GitHub releases
+- Install it to `/usr/local/bin` (or `STENCIL_INSTALL` directory)
+- Set up executable permissions
+
+### Manual Installation
+
+#### Linux & macOS
+
+Download the binary for your platform from [Releases](https://github.com/linxux/stencil/releases):
+
+```bash
+# Example: Linux amd64
+wget https://github.com/linxux/stencil/releases/latest/download/stencil-linux-amd64.tar.gz
+tar -xzf stencil-linux-amd64.tar.gz
+chmod +x stencil-linux-amd64
+sudo mv stencil-linux-amd64 /usr/local/bin/stencil
+
+# Verify installation
+stencil --version
+```
+
+#### Windows
+
+Download the `.zip` file from [Releases](https://github.com/linxux/stencil/releases), extract it, and add the binary to your PATH.
+
+#### Using Homebrew (macOS)
+
+Coming soon! We're working on a Homebrew tap.
+
+#### Using Scoop (Windows)
+
+Coming soon! We're working on a Scoop bucket.
+
+#### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/linxux/stencil.git
+cd stencil
+
+# Build
 make build
 
 # The binary will be created in ./bin/stencil
+sudo mv ./bin/stencil /usr/local/bin/
 ```
 
 ## Usage
@@ -186,4 +243,4 @@ make clean
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details

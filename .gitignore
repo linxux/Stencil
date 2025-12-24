@@ -239,6 +239,10 @@ $RECYCLE.BIN/
 # Or if you build into a `bin` directory
 bin/
 
+# Distribution packages and release artifacts
+dist/
+dist/release/
+
 # Environment variables
 !.env
 !.env.example
