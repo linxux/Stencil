@@ -284,12 +284,12 @@ v1.3.0-alpha.1
 
 | Platform | Architecture | Status | Binary Name |
 |----------|--------------|--------|-------------|
-| Linux | amd64 (x86_64) | ✅ | `stencil-linux-amd64` |
-| Linux | arm64 (aarch64) | ✅ | `stencil-linux-arm64` |
-| macOS | amd64 (Intel) | ✅ | `stencil-darwin-amd64` |
-| macOS | arm64 (Apple Silicon) | ✅ | `stencil-darwin-arm64` |
-| Windows | amd64 (x86_64) | ✅ | `stencil-windows-amd64.exe` |
-| Windows | 386 (x86) | ✅ | `stencil-windows-386.exe` |
+| Linux | amd64 (x86_64) | ✅ | `stencil_linux_amd64` |
+| Linux | arm64 (aarch64) | ✅ | `stencil_linux_arm64` |
+| macOS | amd64 (Intel) | ✅ | `stencil_darwin_amd64` |
+| macOS | arm64 (Apple Silicon) | ✅ | `stencil_darwin_arm64` |
+| Windows | amd64 (x86_64) | ✅ | `stencil_windows_amd64.exe` |
+| Windows | 386 (x86) | ✅ | `stencil_windows_386.exe` |
 
 ## Artifacts
 
@@ -298,11 +298,11 @@ Each release produces:
 ### Binaries
 
 ```
-stencil-1.0.0-linux-amd64.tar.gz
-stencil-1.0.0-linux-arm64.tar.gz
-stencil-1.0.0-darwin-amd64.tar.gz
-stencil-1.0.0-darwin-arm64.tar.gz
-stencil-1.0.0-windows-amd64.zip
+stencil_linux_amd64.tar.gz
+stencil_linux_arm64.tar.gz
+stencil_darwin_amd64.tar.gz
+stencil_darwin_arm64.tar.gz
+stencil_windows_amd64.zip
 ```
 
 ### Checksums
@@ -328,13 +328,13 @@ The `scripts/install.sh` script provides an easy way for users to install Stenci
 
 ```bash
 # Install latest version
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | sh
 
 # Install specific version
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh -s v1.0.0
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | sh -s v1.0.0
 
 # Install to custom directory
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | STENCIL_INSTALL=~/.local sh
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | STENCIL_INSTALL=~/.local sh
 
 # Install from local copy
 ./scripts/install.sh
@@ -366,7 +366,7 @@ curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/instal
 The script expects binaries to follow this naming convention in GitHub releases:
 
 ```
-https://github.com/linxux/stencil/releases/latest/download/stencil_{os}_{arch}.tar.gz
+https://github.com/linxux/Stencil/releases/latest/download/stencil_{os}_{arch}.tar.gz
 ```
 
 Examples:
@@ -374,6 +374,7 @@ Examples:
 - `stencil_linux_arm64.tar.gz`
 - `stencil_darwin_amd64.tar.gz`
 - `stencil_darwin_arm64.tar.gz`
+- `stencil_windows_amd64.zip`
 
 ### Verification
 
@@ -392,17 +393,17 @@ Always verify downloaded binaries:
 
 ```bash
 # Download checksums (GitHub)
-curl -sL https://github.com/linxux/stencil/releases/download/v1.0.0/SHA256SUMS.txt -o SHA256SUMS.txt
+curl -sL https://github.com/linxux/Stencil/releases/download/v1.0.0/SHA256SUMS.txt -o SHA256SUMS.txt
 
 # Download checksums (GitLab)
 curl -sL https://gitlab.com/linxux/stencil/-/releases/v1.0.0/downloads/assets/SHA256SUMS.txt -o SHA256SUMS.txt
 
 # Download binary
-curl -sL https://github.com/linxux/stencil/releases/download/v1.0.0/stencil-1.0.0-linux-amd64.tar.gz -o stencil.tar.gz
+curl -sL https://github.com/linxux/Stencil/releases/download/v1.0.0/stencil_linux_amd64.tar.gz -o stencil.tar.gz
 
 # Verify checksum
 sha256sum -c --ignore-missing SHA256SUMS.txt
-# Output: stencil-1.0.0-linux-amd64.tar.gz: OK
+# Output: stencil_linux_amd64.tar.gz: OK
 ```
 
 ## Environment Variables
@@ -528,12 +529,12 @@ When pushing to both platforms:
 
 ```bash
 # Add both remotes
-git remote add github https://github.com/linxux/stencil.git
+git remote add github https://github.com/linxux/Stencil.git
 git remote add gitlab https://gitlab.com/linxux/stencil.git
 
 # Push to both
-git push github main
-git push gitlab main
+git push github master
+git push gitlab master
 
 # Push tags to both
 git push github v1.0.0

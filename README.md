@@ -21,13 +21,13 @@ The easiest way to install Stencil is using the installation script:
 
 ```bash
 # Install the latest version
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | sh
 
 # Install a specific version
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | sh -s v1.0.0
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | sh -s v1.0.0
 
 # Install to a custom directory (e.g., user home)
-curl -sSL https://raw.githubusercontent.com/linxux/stencil/master/scripts/install.sh | STENCIL_INSTALL=~/.local sh
+curl -sSL https://raw.githubusercontent.com/linxux/Stencil/master/scripts/install.sh | STENCIL_INSTALL=~/.local sh
 ```
 
 The installer will:
@@ -40,14 +40,14 @@ The installer will:
 
 #### Linux & macOS
 
-Download the binary for your platform from [Releases](https://github.com/linxux/stencil/releases):
+Download the binary for your platform from [Releases](https://github.com/linxux/Stencil/releases):
 
 ```bash
 # Example: Linux amd64
-wget https://github.com/linxux/stencil/releases/latest/download/stencil-linux-amd64.tar.gz
-tar -xzf stencil-linux-amd64.tar.gz
-chmod +x stencil-linux-amd64
-sudo mv stencil-linux-amd64 /usr/local/bin/stencil
+wget https://github.com/linxux/Stencil/releases/latest/download/stencil_linux_amd64.tar.gz
+tar -xzf stencil_linux_amd64.tar.gz
+chmod +x stencil_linux_amd64
+sudo mv stencil_linux_amd64 /usr/local/bin/stencil
 
 # Verify installation
 stencil --version
@@ -55,7 +55,7 @@ stencil --version
 
 #### Windows
 
-Download the `.zip` file from [Releases](https://github.com/linxux/stencil/releases), extract it, and add the binary to your PATH.
+Download the `.zip` file from [Releases](https://github.com/linxux/Stencil/releases), extract it, and add the binary to your PATH.
 
 #### Using Homebrew (macOS)
 
@@ -69,8 +69,8 @@ Coming soon! We're working on a Scoop bucket.
 
 ```bash
 # Clone the repository
-git clone https://github.com/linxux/stencil.git
-cd stencil
+git clone https://github.com/linxux/Stencil.git
+cd Stencil
 
 # Build
 make build
