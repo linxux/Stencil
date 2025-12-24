@@ -99,7 +99,6 @@ template/
 ```bash
 go get {{module_path}}
 ```
-```
 
 ## Configuration File
 
