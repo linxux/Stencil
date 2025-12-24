@@ -62,10 +62,10 @@ build-all:
 		echo "Building $(PLATFORM)..."; \
 		GOOS=$(word 1,$(subst /, ,$(PLATFORM))) \
 		GOARCH=$(word 2,$(subst /, ,$(PLATFORM))) \
-		$(GO) build $(LDFLAGS) -o $(DIST_DIR)/$(BINARY)-$(subst /,-,$(PLATFORM)) $(SOURCES); \
+		$(GO) build $(LDFLAGS) -o $(DIST_DIR)/$(BINARY)_$(subst /,_,$(PLATFORM)) $(SOURCES); \
 	)
 	@# Add .exe extension to Windows binaries
-	@for file in $(DIST_DIR)/stencil-windows-*; do \
+	@for file in $(DIST_DIR)/stencil_windows_*; do \
 		if [ -f "$$file" ] && [ ! -e "$$file.exe" ]; then \
 			mv "$$file" "$$file.exe"; \
 		fi; \
@@ -78,16 +78,13 @@ release: clean build-all
 	@echo "Creating release packages..."
 	@mkdir -p $(DIST_DIR)/release
 	@for platform in $(PLATFORMS); do \
-		platform_clean=$$(echo "$$platform" | tr '/' '-'); \
 		platform_us=$$(echo "$$platform" | tr '/' '_'); \
 		if echo "$$platform" | grep -q windows; then \
 			echo "Packaging $$platform as zip..."; \
-			(cd $(DIST_DIR) && zip -q -r release/$(BINARY)-$(VERSION)-$$platform_clean.zip $(BINARY)-$$platform_clean.exe); \
-			(cd $(DIST_DIR) && zip -q -r release/$(BINARY)_$$platform_us.zip $(BINARY)-$$platform_clean.exe); \
+			(cd $(DIST_DIR) && zip -q -r release/$(BINARY)_$$platform_us.zip $(BINARY)_$$platform_us.exe); \
 		else \
 			echo "Packaging $$platform as tar.gz..."; \
-			tar -czf $(DIST_DIR)/release/$(BINARY)-$(VERSION)-$$platform_clean.tar.gz -C $(DIST_DIR) $(BINARY)-$$platform_clean; \
-			tar -czf $(DIST_DIR)/release/$(BINARY)_$$platform_us.tar.gz -C $(DIST_DIR) $(BINARY)-$$platform_clean; \
+			tar -czf $(DIST_DIR)/release/$(BINARY)_$$platform_us.tar.gz -C $(DIST_DIR) $(BINARY)_$$platform_us; \
 		fi \
 	done
 	@echo "✓ Release packages created in $(DIST_DIR)/release:"

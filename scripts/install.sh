@@ -53,10 +53,10 @@ esac
 # Version argument (optional)
 if [ $# -eq 0 ]; then
   version="latest"
-  stencil_uri="https://github.com/linxux/stencil/releases/latest/download/stencil_${os}_${arch}.tar.gz"
+  stencil_uri="https://github.com/linxux/Stencil/releases/latest/download/stencil_${os}_${arch}.tar.gz"
 else
   version="$1"
-  stencil_uri="https://github.com/linxux/stencil/releases/download/${version}/stencil_${os}_${arch}.tar.gz"
+  stencil_uri="https://github.com/linxux/Stencil/releases/download/${version}/stencil_${os}_${arch}.tar.gz"
 fi
 
 # Installation directory (default: /usr/local)

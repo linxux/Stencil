@@ -60,19 +60,19 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
-            asset_name: stencil-linux-amd64
+            asset_name: stencil_linux_amd64
           - goos: linux
             goarch: arm64
-            asset_name: stencil-linux-arm64
+            asset_name: stencil_linux_arm64
           - goos: darwin
             goarch: amd64
-            asset_name: stencil-darwin-amd64
+            asset_name: stencil_darwin_amd64
           - goos: darwin
             goarch: arm64
-            asset_name: stencil-darwin-arm64
+            asset_name: stencil_darwin_arm64
           - goos: windows
             goarch: amd64
-            asset_name: stencil-windows-amd64.exe
+            asset_name: stencil_windows_amd64.exe
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -150,20 +150,18 @@ jobs:
           mkdir -p dist/release
 
           # Find and package all binaries
-          for binary in $(find dist/binaries -type f -name "stencil-*" -o -name "stencil-*.exe"); do
+          for binary in $(find dist/binaries -type f); do
             bin_name=$(basename "$binary")
             echo "Packaging $bin_name..."
 
-            # Extract platform info from filename
+            # Extract platform info from filename (already has underscores)
             if echo "$bin_name" | grep -q "windows"; then
-              # Windows - create zip
-              platform=$(echo "$bin_name" | sed 's/stencil-//' | sed 's/.exe//')
-              zip -q "dist/release/stencil-${VERSION}-${platform}.zip" "$binary"
+              # Windows - create zip (remove .exe for package name)
+              platform=$(echo "$bin_name" | sed 's/stencil_//' | sed 's/.exe//')
               zip -q "dist/release/stencil_${platform}.zip" "$binary"
             else
               # Unix - create tar.gz
-              platform=$(echo "$bin_name" | sed 's/stencil-//')
-              tar -czf "dist/release/stencil-${VERSION}-${platform}.tar.gz" -C "$(dirname "$binary")" "$(basename "$binary")"
+              platform=$(echo "$bin_name" | sed 's/stencil_//')
               tar -czf "dist/release/stencil_${platform}.tar.gz" -C "$(dirname "$binary")" "$(basename "$binary")"
             fi
           done
