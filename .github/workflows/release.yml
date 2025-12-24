@@ -149,33 +149,24 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           mkdir -p dist/release
 
-          # Package Linux binaries (with and without version for install script)
-          cd dist/binaries/stencil-linux-amd64
-          tar -czf ../../release/stencil-${VERSION}-linux-amd64.tar.gz stencil-linux-amd64
-          tar -czf ../../release/stencil_linux_amd64.tar.gz stencil-linux-amd64
-          cd ../../..
+          # Find and package all binaries
+          for binary in $(find dist/binaries -type f -name "stencil-*" -o -name "stencil-*.exe"); do
+            bin_name=$(basename "$binary")
+            echo "Packaging $bin_name..."
 
-          cd dist/binaries/stencil-linux-arm64
-          tar -czf ../../release/stencil-${VERSION}-linux-arm64.tar.gz stencil-linux-arm64
-          tar -czf ../../release/stencil_linux_arm64.tar.gz stencil-linux-arm64
-          cd ../../..
-
-          # Package macOS binaries (with and without version for install script)
-          cd dist/binaries/stencil-darwin-amd64
-          tar -czf ../../release/stencil-${VERSION}-darwin-amd64.tar.gz stencil-darwin-amd64
-          tar -czf ../../release/stencil_darwin_amd64.tar.gz stencil-darwin-amd64
-          cd ../../..
-
-          cd dist/binaries/stencil-darwin-arm64
-          tar -czf ../../release/stencil-${VERSION}-darwin-arm64.tar.gz stencil-darwin-arm64
-          tar -czf ../../release/stencil_darwin_arm64.tar.gz stencil-darwin-arm64
-          cd ../../..
-
-          # Package Windows binary (with and without version for install script)
-          cd dist/binaries/stencil-windows-amd64.exe
-          zip -q -r ../../release/stencil-${VERSION}-windows-amd64.zip stencil-windows-amd64.exe
-          zip -q -r ../../release/stencil_windows_amd64.zip stencil-windows-amd64.exe
-          cd ../../..
+            # Extract platform info from filename
+            if echo "$bin_name" | grep -q "windows"; then
+              # Windows - create zip
+              platform=$(echo "$bin_name" | sed 's/stencil-//' | sed 's/.exe//')
+              zip -q "dist/release/stencil-${VERSION}-${platform}.zip" "$binary"
+              zip -q "dist/release/stencil_${platform}.zip" "$binary"
+            else
+              # Unix - create tar.gz
+              platform=$(echo "$bin_name" | sed 's/stencil-//')
+              tar -czf "dist/release/stencil-${VERSION}-${platform}.tar.gz" -C "$(dirname "$binary")" "$(basename "$binary")"
+              tar -czf "dist/release/stencil_${platform}.tar.gz" -C "$(dirname "$binary")" "$(basename "$binary")"
+            fi
+          done
 
           # Generate checksums
           cd dist/release
