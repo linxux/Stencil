@@ -144,7 +144,7 @@ template/
 
 ### Example Template File (README.md)
 
-```markdown
+~~~markdown
 # {{project_name}}
 
 {{description}}
@@ -156,6 +156,7 @@ template/
 ```bash
 go get {{module_path}}
 ```
+~~~
 
 ## Configuration File
 
